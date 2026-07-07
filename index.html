@@ -109,14 +109,18 @@ let current = {imgs:[], i:0};                      // lightbox state
 
 const U = e => (e && typeof e==="object") ? e.u : e;          // shard entry -> image URL
 const isFlickr = u => u.includes("staticflickr");
-const rawImg = u => u.includes("staticflickr") || u.includes("danam.cats");  // raw file hosts: no width param
+const rawImg = u => u.includes("staticflickr") || u.includes("danam.cats") || u.includes("geograph.org.uk");  // raw file hosts: no width param
 const thumb = (u,w)=> rawImg(u) ? u : u + (u.includes("?")?"&":"?") + "width="+w;
 const commonsPage = u => u.replace("/wiki/Special:FilePath/","/wiki/File:");
 const fileName = u => decodeURIComponent(u.split("Special:FilePath/")[1]||"").replace(/_/g," ");
 // caption/attribution for one shard entry (Flickr object -> owner+license+page; else Commons)
 function capHTML(e){
-  if(e && typeof e==="object")
-    return `${e.o?("© "+e.o+" · "):""}${e.l||"CC"} · <a href="${e.p||'#'}" target="_blank">source ↗</a>`;
+  if(e && typeof e==="object"){
+    const via = (e.p && e.p.includes("geograph.org.uk"))
+      ? `<a href="${e.p}" target="_blank">via Geograph ↗</a>`
+      : `<a href="${e.p||'#'}" target="_blank">source ↗</a>`;
+    return `${e.o?("© "+e.o+" · "):""}${e.l||"CC"} · ${via}`;
+  }
   return `${fileName(e)} · <a href="${commonsPage(e)}" target="_blank">view on Commons</a>`;
 }
 
@@ -129,7 +133,7 @@ const map = new maplibregl.Map({
       tiles:["https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
              "https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
              "https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png"],
-      attribution:"© OpenStreetMap, © CARTO · imagery: Wikimedia Commons, DPLA & Flickr (rights per item)"}},
+      attribution:"© OpenStreetMap, © CARTO · imagery: Wikimedia Commons, DPLA, Flickr & Geograph (rights per item)"}},
     layers:[{id:"bg",type:"raster",source:"carto"}]
   },
   center:[16,22], zoom:2.7, maxZoom:19   // global: Europe + Africa in view
